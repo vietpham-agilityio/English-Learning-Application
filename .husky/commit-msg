@@ -1,0 +1,1 @@
+pnpm --filter backend exec commitlint --edit "$1"
