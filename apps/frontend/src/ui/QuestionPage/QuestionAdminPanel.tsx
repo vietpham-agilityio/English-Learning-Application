@@ -39,7 +39,7 @@ export function QuestionAdminPanel({
   const { getToken } = useAuth();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
-  const [questions, setQuestions] = useState<Question[]>([...initialQuestions]);
+  const questions = [...initialQuestions];
 
   const [formModalOpen, setFormModalOpen] = useState(false);
   const [mode, setMode] = useState<QuestionFormMode>("create");
@@ -55,10 +55,6 @@ export function QuestionAdminPanel({
   const [deleting, setDeleting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
-
-  useEffect(() => {
-    setQuestions([...initialQuestions]);
-  }, [initialQuestions]);
 
   useEffect(() => {
     const t = setTimeout(() => setMounted(true), 50);

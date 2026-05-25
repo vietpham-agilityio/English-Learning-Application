@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from "@clerk/nextjs";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { createPortal } from "react-dom";
 
 import { getUserById, promoteUser } from "@/src/services/users";
@@ -38,11 +38,8 @@ export function UserRow({ user, index, isAdmin = false }: Props) {
   const [promoting, setPromoting] = useState(false);
   const [promoteError, setPromoteError] = useState<string | null>(null);
 
-  // createPortal requires the browser DOM — guard against SSR.
-  const [domReady, setDomReady] = useState(false);
-  useEffect(() => { setDomReady(true); }, []);
-
   const meta = USER_ROLE_META[localRole] ?? FALLBACK_USER_ROLE_META;
+  const canUsePortal = typeof document !== "undefined";
 
   const loadDetail = useCallback(async () => {
     setError(null);
@@ -130,7 +127,7 @@ export function UserRow({ user, index, isAdmin = false }: Props) {
 
   return (
     <>
-      {domReady && createPortal(
+      {canUsePortal && createPortal(
         <PromoteUserModal
           open={showPromoteModal}
           userName={displayName(user)}

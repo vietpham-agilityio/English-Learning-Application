@@ -39,7 +39,7 @@ export function CourseAdminPanel({ initialCourses }: Props): ReactElement {
   const { getToken } = useAuth();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
-  const [courses, setCourses] = useState<Course[]>([...initialCourses]);
+  const courses = [...initialCourses];
 
   const [formModalOpen, setFormModalOpen] = useState(false);
   const [mode, setMode] = useState<CourseFormMode>('create');
@@ -55,10 +55,6 @@ export function CourseAdminPanel({ initialCourses }: Props): ReactElement {
   const [deleting, setDeleting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
-
-  useEffect(() => {
-    setCourses([...initialCourses]);
-  }, [initialCourses]);
 
   useEffect(() => {
     const t = setTimeout(() => setMounted(true), 50);

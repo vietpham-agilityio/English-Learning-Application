@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import {
   useCallback,
   useEffect,
+  useMemo,
   useState,
   type CSSProperties,
   type FormEvent,
@@ -40,8 +41,9 @@ export function LessonAdminPanel({
   const { getToken } = useAuth();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
-  const [lessons, setLessons] = useState<Lesson[]>(
-    [...initialLessons].sort((a, b) => a.order - b.order),
+  const lessons = useMemo(
+    () => [...initialLessons].sort((a, b) => a.order - b.order),
+    [initialLessons],
   );
 
   const [formModalOpen, setFormModalOpen] = useState(false);
@@ -58,10 +60,6 @@ export function LessonAdminPanel({
   const [deleting, setDeleting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
-
-  useEffect(() => {
-    setLessons([...initialLessons].sort((a, b) => a.order - b.order));
-  }, [initialLessons]);
 
   useEffect(() => {
     const t = setTimeout(() => setMounted(true), 50);
