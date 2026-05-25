@@ -1,10 +1,10 @@
 services:
   english-learning-server:
     build:
-      context: ../..
+      context: .
       dockerfile: apps/backend/Dockerfile
     env_file:
-      - .env
+      - apps/backend/.env
     environment:
       DB_PASSWORD_FILE: /run/secrets/db-password
     ports:
@@ -21,7 +21,7 @@ services:
     volumes:
       - english-learning-data:/var/lib/postgresql/data
     env_file:
-      - .env
+      - apps/backend/.env
     environment:
       POSTGRES_PASSWORD_FILE: /run/secrets/db-password
     expose:
@@ -39,4 +39,4 @@ volumes:
 
 secrets:
   db-password:
-    file: db/password.txt
+    file: apps/backend/db/password.txt
