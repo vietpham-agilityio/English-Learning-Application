@@ -10,7 +10,7 @@ RUN --mount=type=cache,target=/root/.npm \
 
 FROM base AS build
 
-COPY pnpm-workspace.yml package.json pnpm-lock.yaml ./
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
 COPY apps/backend/package.json ./apps/backend/
 COPY apps/frontend/package.json ./apps/frontend/
 
