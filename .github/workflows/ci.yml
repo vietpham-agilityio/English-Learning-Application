@@ -42,11 +42,7 @@ jobs:
         uses: ./.github/actions/setup-node-and-pnpm
 
       - name: Audit dependencies
-        run: |
-          if ! pnpm audit --audit-level high; then
-            echo "::warning::Security vulnerabilities found in dependencies. Please review and update affected packages."
-            exit 0
-          fi
+        run: pnpm audit --audit-level high
 
   test:
     name: Unit Tests
