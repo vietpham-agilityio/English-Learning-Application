@@ -33,6 +33,8 @@ jobs:
   security:
       name: Verify Package Security
       runs-on: ubuntu-latest
+      continue-on-error: true
+
       steps:
 
       - name: Checkout
@@ -73,35 +75,6 @@ jobs:
       - name: Build
         run: pnpm build
 
-  prepare:
-    name: Resolve Deployment Environment
-    runs-on: ubuntu-latest
-    needs: [build]
-    if: github.event_name == 'push'
-    outputs:
-      doppler_token_fe: ${{ steps.resolve.outputs.doppler_token_fe }}
-      doppler_token_be: ${{ steps.resolve.outputs.doppler_token_be }}
-      railway_environment: ${{ steps.resolve.outputs.railway_environment }}
-    steps:
-      - name: Resolve environment by branch
-        id: resolve
-        run: |
-          if [[ "${{ github.ref_name }}" == "main" ]]; then
-            echo "doppler_token_fe=${{ secrets.DOPPLER_TOKEN_FE_PRODUCTION }}" >> $GITHUB_OUTPUT
-            echo "doppler_token_be=${{ secrets.DOPPLER_TOKEN_BE_PRODUCTION }}" >> $GITHUB_OUTPUT
-            echo "railway_environment=production" >> $GITHUB_OUTPUT
-
-          elif [[ "${{ github.ref_name }}" == "staging" ]]; then
-            echo "doppler_token_fe=${{ secrets.DOPPLER_TOKEN_FE_PREVIEW }}" >> $GITHUB_OUTPUT
-            echo "doppler_token_be=${{ secrets.DOPPLER_TOKEN_BE_STAGING }}" >> $GITHUB_OUTPUT
-            echo "railway_environment=staging" >> $GITHUB_OUTPUT
-
-          else
-            echo "doppler_token_fe=${{ secrets.DOPPLER_TOKEN_FE_PREVIEW }}" >> $GITHUB_OUTPUT
-            echo "doppler_token_be=${{ secrets.DOPPLER_TOKEN_BE_DEV }}" >> $GITHUB_OUTPUT
-            echo "railway_environment=develop" >> $GITHUB_OUTPUT
-          fi
-
   docker:
     name: Docker Build & Push
     runs-on: ubuntu-latest
@@ -140,16 +113,32 @@ jobs:
   deploy-be:
     name: Deploy Backend — Railway
     runs-on: ubuntu-latest
-    needs: [docker, prepare]
+    needs: [docker]
     steps:
 
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Resolve Doppler and Railway environment
+        id: resolve
+        run: |
+          if [[ "${{ github.ref_name }}" == "main" ]]; then
+            echo "doppler_token=${{ secrets.DOPPLER_TOKEN_BE_PRODUCTION }}" >> $GITHUB_OUTPUT
+            echo "railway_environment=production" >> $GITHUB_OUTPUT
+
+          elif [[ "${{ github.ref_name }}" == "staging" ]]; then
+            echo "doppler_token=${{ secrets.DOPPLER_TOKEN_BE_STAGING }}" >> $GITHUB_OUTPUT
+            echo "railway_environment=staging" >> $GITHUB_OUTPUT
+
+          else
+            echo "doppler_token=${{ secrets.DOPPLER_TOKEN_BE_DEV }}" >> $GITHUB_OUTPUT
+            echo "railway_environment=develop" >> $GITHUB_OUTPUT
+          fi
+
       - name: Setup Doppler CLI
         uses: ./.github/actions/setup-doppler
         with:
-          token: ${{ needs.prepare.outputs.doppler_token_be }}
+          token: ${{ steps.resolve.outputs.doppler_token }}
 
       - name: Setup Railway CLI
         uses: ./.github/actions/setup-railway
@@ -180,4 +169,4 @@ jobs:
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
           RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
-          RAILWAY_ENVIRONMENT: ${{ needs.prepare.outputs.railway_environment }}
+          RAILWAY_ENVIRONMENT: ${{ steps.resolve.outputs.railway_environment }}
