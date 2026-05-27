@@ -1,0 +1,17 @@
+name: Setup Doppler CLI
+description: Install Doppler CLI and authenticate using the provided API token
+
+inputs:
+  token:
+    description: Doppler API token used to authenticate CLI commands
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Install Doppler CLI
+      uses: dopplerhq/cli-action@v4
+
+    - name: Authenticate Doppler CLI
+      shell: bash
+      run: echo "DOPPLER_TOKEN=${{ inputs.token }}" >> $GITHUB_ENV
