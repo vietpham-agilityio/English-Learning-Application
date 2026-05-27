@@ -184,6 +184,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Install Vercel CLI
+        run: npm install -g vercel
+
       - name: Setup Doppler CLI
         uses: ./.github/actions/setup-doppler
         with:
