@@ -73,11 +73,39 @@ jobs:
       - name: Build
         run: pnpm build
 
-  docker:
-    name: Docker Build & Push
+  prepare:
+    name: Resolve Deployment Environment
     runs-on: ubuntu-latest
     needs: [build]
     if: github.event_name == 'push'
+    outputs:
+      doppler_token_fe: ${{ steps.resolve.outputs.doppler_token_fe }}
+      doppler_token_be: ${{ steps.resolve.outputs.doppler_token_be }}
+      railway_environment: ${{ steps.resolve.outputs.railway_environment }}
+    steps:
+      - name: Resolve environment by branch
+        id: resolve
+        run: |
+          if [[ "${{ github.ref_name }}" == "main" ]]; then
+            echo "doppler_token_fe=${{ secrets.DOPPLER_TOKEN_FE_PRODUCTION }}" >> $GITHUB_OUTPUT
+            echo "doppler_token_be=${{ secrets.DOPPLER_TOKEN_BE_PRODUCTION }}" >> $GITHUB_OUTPUT
+            echo "railway_environment=production" >> $GITHUB_OUTPUT
+
+          elif [[ "${{ github.ref_name }}" == "staging" ]]; then
+            echo "doppler_token_fe=${{ secrets.DOPPLER_TOKEN_FE_PREVIEW }}" >> $GITHUB_OUTPUT
+            echo "doppler_token_be=${{ secrets.DOPPLER_TOKEN_BE_STAGING }}" >> $GITHUB_OUTPUT
+            echo "railway_environment=staging" >> $GITHUB_OUTPUT
+
+          else
+            echo "doppler_token_fe=${{ secrets.DOPPLER_TOKEN_FE_PREVIEW }}" >> $GITHUB_OUTPUT
+            echo "doppler_token_be=${{ secrets.DOPPLER_TOKEN_BE_DEV }}" >> $GITHUB_OUTPUT
+            echo "railway_environment=develop" >> $GITHUB_OUTPUT
+          fi
+
+  docker:
+    name: Docker Build & Push
+    runs-on: ubuntu-latest
+    needs: [prepare]
     steps:
 
       - name: Checkout
@@ -109,14 +137,19 @@ jobs:
           cache-from: type=gha,scope=${{ github.ref_name }}
           cache-to: type=gha,scope=${{ github.ref_name }},mode=max
 
-  deploy:
-    name: Railway re-deploying
+  deploy-be:
+    name: Deploy Backend — Railway
     runs-on: ubuntu-latest
-    needs: [docker]
+    needs: [docker, prepare]
     steps:
 
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Setup Doppler CLI
+        uses: ./.github/actions/setup-doppler
+        with:
+          token: ${{ needs.prepare.outputs.doppler_token_be }}
 
       - name: Setup Railway CLI
         uses: ./.github/actions/setup-railway
@@ -143,7 +176,8 @@ jobs:
           RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
 
       - name: Trigger Railway re-deploying
-        run: railway redeploy --service ${{ vars.RAILWAY_SERVICE }} --yes
+        run: doppler run -- railway redeploy --service ${{ vars.RAILWAY_SERVICE }} --yes
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
           RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+          RAILWAY_ENVIRONMENT: ${{ needs.prepare.outputs.railway_environment }}
