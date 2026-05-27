@@ -138,9 +138,9 @@ jobs:
 
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-          RAILWAY_SERVICE: ${{ secret.RAILWAY_SERVICE }}
+          RAILWAY_SERVICE: ${{ secrets.RAILWAY_SERVICE }}
 
       - name: Trigger Railway re-deploying
-        run: railway redeploy --service ${{ secret.RAILWAY_SERVICE }} --yes
+        run: railway redeploy --service ${{ secrets.RAILWAY_SERVICE }} --yes
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
