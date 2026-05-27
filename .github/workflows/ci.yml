@@ -168,6 +168,11 @@ jobs:
       - name: Inject Doppler secrets
         run: doppler secrets download --no-file --format env >> $GITHUB_ENV
 
+      - name: Verify Railway authentication
+        run: railway whoami
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
       - name: Trigger Railway re-deploying
         run: railway redeploy --service ${{ vars.RAILWAY_SERVICE }} --environment ${{ steps.resolve.outputs.railway_environment }} --yes
         env:
