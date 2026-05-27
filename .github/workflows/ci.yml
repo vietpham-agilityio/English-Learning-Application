@@ -125,6 +125,7 @@ jobs:
         run: |
           MISSING=()
 
+          [[ -z "$RAILWAY_PROJECT_ID" ]] && MISSING+=("RAILWAY_PROJECT_ID (secret)")
           [[ -z "$RAILWAY_TOKEN" ]] && MISSING+=("RAILWAY_TOKEN (secret)")
           [[ -z "$RAILWAY_SERVICE" ]] && MISSING+=("RAILWAY_SERVICE (variable)")
 
@@ -139,8 +140,10 @@ jobs:
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
           RAILWAY_SERVICE: ${{ vars.RAILWAY_SERVICE }}
+          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
 
       - name: Trigger Railway re-deploying
         run: railway redeploy --service ${{ vars.RAILWAY_SERVICE }} --yes
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
