@@ -126,7 +126,7 @@ jobs:
           MISSING=()
 
           [[ -z "$RAILWAY_TOKEN" ]] && MISSING+=("RAILWAY_TOKEN (secret)")
-          [[ -z "$RAILWAY_SERVICE" ]] && MISSING+=("RAILWAY_SERVICE (secret)")
+          [[ -z "$RAILWAY_SERVICE" ]] && MISSING+=("RAILWAY_SERVICE (variable)")
 
           if [[ ${#MISSING[@]} -gt 0 ]]; then
             echo "::error::Missing required environment variables:"
@@ -138,9 +138,9 @@ jobs:
 
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-          RAILWAY_SERVICE: ${{ secrets.RAILWAY_SERVICE }}
+          RAILWAY_SERVICE: ${{ vars.RAILWAY_SERVICE }}
 
       - name: Trigger Railway re-deploying
-        run: railway redeploy --service ${{ secrets.RAILWAY_SERVICE }} --yes
+        run: railway redeploy --service ${{ vars.RAILWAY_SERVICE }} --yes
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
