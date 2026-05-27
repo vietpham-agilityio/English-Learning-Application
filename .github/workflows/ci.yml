@@ -166,7 +166,8 @@ jobs:
           RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
 
       - name: Trigger Railway re-deploying
-        run: doppler run -- railway redeploy --service ${{ vars.RAILWAY_SERVICE }} --environment ${{ steps.resolve.outputs.railway_environment }} --yes
+        run: |
+          doppler run -- sh -c "RAILWAY_TOKEN=$RAILWAY_TOKEN railway redeploy --service ${{ vars.RAILWAY_SERVICE }} --environment ${{ steps.resolve.outputs.railway_environment }} --yes"
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
           RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
