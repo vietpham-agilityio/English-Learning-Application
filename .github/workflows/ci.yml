@@ -213,18 +213,12 @@ jobs:
       - name: Install Vercel CLI
         run: npm install -g vercel
 
-      - name: Pull Vercel project settings
-        run: vercel pull --yes --environment=${{ steps.resolve.outputs.vercel_env }} --token=${{ secrets.VERCEL_TOKEN }}
-        env:
-          VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
-
       - name: Inject Doppler secrets into Vercel
         run: |
           doppler secrets download --no-file --format env | while IFS='=' read -r key value; do
             [[ -z "$key" || "$key" == \#* ]] && continue
-            vercel env rm "$key" ${{ steps.resolve.outputs.vercel_env }} --yes --token=${{ secrets.VERCEL_TOKEN }} 2>/dev/null || true
-            echo "$value" | vercel env add "$key" ${{ steps.resolve.outputs.vercel_env }} --token=${{ secrets.VERCEL_TOKEN }}
+            vercel env rm "$key" ${{ steps.resolve.outputs.vercel_env }} --yes --cwd apps/frontend --token=${{ secrets.VERCEL_TOKEN }} 2>/dev/null || true
+            echo "$value" | vercel env add "$key" ${{ steps.resolve.outputs.vercel_env }} --cwd apps/frontend --token=${{ secrets.VERCEL_TOKEN }}
           done
         env:
           VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
