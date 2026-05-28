@@ -229,7 +229,7 @@ jobs:
           if [[ "${{ steps.resolve.outputs.vercel_flags }}" == "--prod" ]]; then
             vercel deploy --prebuilt --archive=tgz --prod --token=${{ secrets.VERCEL_TOKEN }}
           else
-            vercel deploy --prebuilt --archive=tgz --token=${{ secrets.VERCEL_TOKEN }}
+            vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
           fi
         env:
           VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
