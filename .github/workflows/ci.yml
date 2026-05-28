@@ -120,52 +120,47 @@ jobs:
     needs: [docker]
     steps:
 
-      - name: Checkout
-        uses: actions/checkout@v4
+    - name: Checkout
+      uses: actions/checkout@v4
 
-      - name: Resolve Railway environment
-        id: resolve
-        run: |
-          if [[ "${{ github.ref_name }}" == "main" ]]; then
-            echo "railway_environment=production" >> $GITHUB_OUTPUT
-          elif [[ "${{ github.ref_name }}" == "staging" ]]; then
-            echo "railway_environment=staging" >> $GITHUB_OUTPUT
-          else
-            echo "railway_environment=develop" >> $GITHUB_OUTPUT
-          fi
+    - name: Resolve Railway environment
+      id: resolve
+      run: |
+        if [[ "${{ github.ref_name }}" == "main" ]]; then
+          echo "railway_environment=production" >> $GITHUB_OUTPUT
+          echo "railway_token=${{ secrets.RAILWAY_TOKEN_PRO }}" >> $GITHUB_OUTPUT
+        elif [[ "${{ github.ref_name }}" == "staging" ]]; then
+          echo "railway_environment=staging" >> $GITHUB_OUTPUT
+          echo "railway_token=${{ secrets.RAILWAY_TOKEN_STAG }}" >> $GITHUB_OUTPUT
+        else
+          echo "railway_environment=develop" >> $GITHUB_OUTPUT
+          echo "railway_token=${{ secrets.RAILWAY_TOKEN_DEV }}" >> $GITHUB_OUTPUT
+        fi
 
-      - name: Setup Railway CLI
-        uses: ./.github/actions/setup-railway
+    - name: Setup Railway CLI
+      uses: ./.github/actions/setup-railway
 
-      - name: Validate required environment variables
-        run: |
-          MISSING=()
+    - name: Validate required environment variables
+      run: |
+        MISSING=()
+        [[ -z "$RAILWAY_PROJECT_ID" ]] && MISSING+=("RAILWAY_PROJECT_ID (secret)")
+        [[ -z "$RAILWAY_TOKEN" ]] && MISSING+=("RAILWAY_TOKEN (resolved)")
+        [[ -z "$RAILWAY_SERVICE" ]] && MISSING+=("RAILWAY_SERVICE (variable)")
 
-          [[ -z "$RAILWAY_PROJECT_ID" ]] && MISSING+=("RAILWAY_PROJECT_ID (secret)")
-          [[ -z "$RAILWAY_TOKEN" ]] && MISSING+=("RAILWAY_TOKEN (secret)")
-          [[ -z "$RAILWAY_SERVICE" ]] && MISSING+=("RAILWAY_SERVICE (variable)")
+        if [[ ${#MISSING[@]} -gt 0 ]]; then
+          echo "::error::Missing required environment variables:"
+          for VAR in "${MISSING[@]}"; do
+            echo "::error::  - $VAR"
+          done
+          exit 1
+        fi
+      env:
+        RAILWAY_TOKEN: ${{ steps.resolve.outputs.railway_token }}
+        RAILWAY_SERVICE: ${{ vars.RAILWAY_SERVICE }}
+        RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
 
-          if [[ ${#MISSING[@]} -gt 0 ]]; then
-            echo "::error::Missing required environment variables:"
-            for VAR in "${MISSING[@]}"; do
-              echo "::error::  - $VAR"
-            done
-            exit 1
-          fi
-
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-          RAILWAY_SERVICE: ${{ vars.RAILWAY_SERVICE }}
-          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
-
-      - name: Debug token (safe)
-        run: |
-          echo "Token length: ${#RAILWAY_TOKEN}"
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-
-      - name: Trigger Railway re-deploying
-        run: railway redeploy --service ${{ vars.RAILWAY_SERVICE }} --environment ${{ steps.resolve.outputs.railway_environment }} --yes
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+    - name: Trigger Railway re-deploying
+      run: railway redeploy --service ${{ vars.RAILWAY_SERVICE }} --environment ${{ steps.resolve.outputs.railway_environment }} --yes
+      env:
+        RAILWAY_TOKEN: ${{ steps.resolve.outputs.railway_token }}
+        RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
