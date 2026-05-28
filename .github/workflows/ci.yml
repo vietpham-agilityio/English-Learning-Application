@@ -234,15 +234,6 @@ jobs:
           VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
 
-      - name: Debug — inspect build output paths
-        if: always()
-        working-directory: apps/frontend
-        run: |
-            echo "=== .vercel/output/functions ==="
-            find .vercel/output/functions -maxdepth 3 2>/dev/null || echo "NO FUNCTIONS DIR"
-            echo "=== required-server-files appDir ==="
-            python3 -c "import json; d=json.load(open('.next/required-server-files.json')); print('appDir:', d.get('appDir')); print('relativeAppDir:', d.get('relativeAppDir'))"
-
       - name: Deploy to Vercel
         working-directory: apps/frontend
         run: vercel deploy --prebuilt ${{ steps.resolve.outputs.vercel_flags }} --token=${{ secrets.VERCEL_TOKEN }}

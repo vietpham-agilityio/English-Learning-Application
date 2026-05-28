@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: path.join(__dirname, "../.."),
   },
+  serverExternalPackages: ["client-only"],
 };
 
 export default nextConfig;
