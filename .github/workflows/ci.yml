@@ -123,19 +123,30 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Resolve Railway environment
+    - name: Resolve Doppler and Railway environment
       id: resolve
       run: |
         if [[ "${{ github.ref_name }}" == "main" ]]; then
           echo "railway_environment=production" >> $GITHUB_OUTPUT
+          echo "doppler_token=${{ secrets.DOPPLER_TOKEN_BE_PRODUCTION }}" >> $GITHUB_OUTPUT
           echo "railway_token=${{ secrets.RAILWAY_TOKEN_PRO }}" >> $GITHUB_OUTPUT
         elif [[ "${{ github.ref_name }}" == "staging" ]]; then
           echo "railway_environment=staging" >> $GITHUB_OUTPUT
+          echo "doppler_token=${{ secrets.DOPPLER_TOKEN_BE_STAGING }}" >> $GITHUB_OUTPUT
           echo "railway_token=${{ secrets.RAILWAY_TOKEN_STAG }}" >> $GITHUB_OUTPUT
         else
           echo "railway_environment=develop" >> $GITHUB_OUTPUT
+          echo "doppler_token=${{ secrets.DOPPLER_TOKEN_BE_DEV }}" >> $GITHUB_OUTPUT
           echo "railway_token=${{ secrets.RAILWAY_TOKEN_DEV }}" >> $GITHUB_OUTPUT
         fi
+
+    - name: Setup Doppler CLI
+      uses: ./.github/actions/setup-doppler
+      with:
+        token: ${{ steps.resolve.outputs.doppler_token }}
+
+    - name: Verify Doppler authentication
+      run: doppler me
 
     - name: Setup Railway CLI
       uses: ./.github/actions/setup-railway
@@ -160,7 +171,7 @@ jobs:
         RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
 
     - name: Trigger Railway re-deploying
-      run: railway redeploy --service ${{ vars.RAILWAY_SERVICE }} --environment ${{ steps.resolve.outputs.railway_environment }} --yes
+      run: doppler run -- railway redeploy --service ${{ vars.RAILWAY_SERVICE }} --environment ${{ steps.resolve.outputs.railway_environment }} --yes
       env:
-        RAILWAY_TOKEN: ${{ steps.resolve.outputs.railway_token }}
-        RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
