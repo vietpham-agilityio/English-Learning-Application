@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: monorepoRoot,
   },
-  outputFileTracingRoot: monorepoRoot,
+  output: "standalone",
 };
 
 export default nextConfig;
