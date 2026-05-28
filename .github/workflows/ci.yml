@@ -209,6 +209,7 @@ jobs:
         run: npm install -g vercel@latest
 
       - name: Inject Doppler secrets into Vercel
+        working-directory: apps/frontend
         run: |
           doppler secrets download --no-file --format env | while IFS='=' read -r key value; do
             [[ -z "$key" || "$key" == \#* ]] && continue
@@ -220,18 +221,21 @@ jobs:
           VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
 
       - name: Pull Vercel project settings
+        working-directory: apps/frontend
         run: vercel pull --yes --environment=${{ steps.resolve.outputs.vercel_env }} --token=${{ secrets.VERCEL_TOKEN }}
         env:
           VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
 
       - name: Build Vercel project
+        working-directory: apps/frontend
         run: vercel build ${{ steps.resolve.outputs.vercel_flags }} --token=${{ secrets.VERCEL_TOKEN }}
         env:
           VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
 
       - name: Deploy to Vercel
+        working-directory: apps/frontend
         run: vercel deploy --prebuilt ${{ steps.resolve.outputs.vercel_flags }} --token=${{ secrets.VERCEL_TOKEN }}
         env:
           VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
