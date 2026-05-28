@@ -230,6 +230,12 @@ jobs:
           VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
 
+      - name: Pull Vercel project settings
+        run: vercel pull --yes --cwd apps/frontend --environment=${{ steps.resolve.outputs.vercel_env }} --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+
       - name: Build Vercel project
         run: vercel build --cwd apps/frontend ${{ steps.resolve.outputs.vercel_flags }} --token=${{ secrets.VERCEL_TOKEN }}
         env:
