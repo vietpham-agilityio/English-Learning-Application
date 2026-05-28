@@ -234,6 +234,21 @@ jobs:
           VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
 
+      - name: Debug — inspect build output paths
+        if: always()
+        working-directory: apps/frontend
+        run: |
+            echo "=== CWD ==="
+            pwd
+            echo "=== .vercel/output structure ==="
+            find .vercel/output -maxdepth 3 2>/dev/null || echo "No .vercel/output found"
+            echo "=== .next structure ==="
+            find .next -maxdepth 2 2>/dev/null || echo "No .next found"
+            echo "=== routes-manifest location ==="
+            find . -name "routes-manifest.json" 2>/dev/null || echo "routes-manifest.json not found"
+            echo "=== outputFileTracingRoot in next.config ==="
+            cat next.config.ts
+
       - name: Deploy to Vercel
         working-directory: apps/frontend
         run: vercel deploy --prebuilt ${{ steps.resolve.outputs.vercel_flags }} --token=${{ secrets.VERCEL_TOKEN }}
