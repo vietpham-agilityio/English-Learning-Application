@@ -113,7 +113,7 @@ jobs:
       - name: Archive Vercel build output
         if: github.event_name == 'push'
         working-directory: apps/frontend
-        run: tar -czf /tmp/vercel-output.tar.gz .vercel/output
+        run: tar -czf /tmp/vercel-output.tar.gz .vercel .next
 
       - name: Upload Vercel build output
         if: github.event_name == 'push'
@@ -261,7 +261,7 @@ jobs:
 
       - name: Extract Vercel build output
         run: |
-          mkdir -p apps/frontend/.vercel
+          mkdir -p apps/frontend
           tar -xzf /tmp/vercel-output.tar.gz -C apps/frontend
 
       - name: Deploy to Vercel
@@ -275,3 +275,4 @@ jobs:
         env:
           VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+          
