@@ -233,13 +233,16 @@ jobs:
           VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
 
       - name: Build Vercel project
+        shell: bash
         run: vercel build ${{ steps.resolve.outputs.vercel_flags }} --token=${{ secrets.VERCEL_TOKEN }}
         working-directory: apps/frontend
         env:
           VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+          TURBOPACK: "0"
 
       - name: Deploy to Vercel
+        shell: bash
         run: vercel deploy --prebuilt ${{ steps.resolve.outputs.vercel_flags }} --token=${{ secrets.VERCEL_TOKEN }}
         working-directory: apps/frontend
         env:
