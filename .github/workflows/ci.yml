@@ -209,7 +209,6 @@ jobs:
         run: npm install -g vercel@latest
 
       - name: Inject Doppler secrets into Vercel
-        working-directory: apps/frontend
         run: |
           doppler secrets download --no-file --format env | while IFS='=' read -r key value; do
             [[ -z "$key" || "$key" == \#* ]] && continue
@@ -221,14 +220,12 @@ jobs:
           VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
 
       - name: Pull Vercel project settings
-        working-directory: apps/frontend
         run: vercel pull --yes --environment=${{ steps.resolve.outputs.vercel_env }} --token=${{ secrets.VERCEL_TOKEN }}
         env:
           VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
 
       - name: Build Vercel project
-        working-directory: apps/frontend
         run: vercel build ${{ steps.resolve.outputs.vercel_flags }} --token=${{ secrets.VERCEL_TOKEN }}
         env:
           VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
@@ -236,21 +233,13 @@ jobs:
 
       - name: Debug — inspect build output paths
         if: always()
-        working-directory: apps/frontend
         run: |
-            echo "=== CWD ==="
-            pwd
-            echo "=== .vercel/output structure ==="
-            find .vercel/output -maxdepth 3 2>/dev/null || echo "No .vercel/output found"
-            echo "=== .next structure ==="
-            find .next -maxdepth 2 2>/dev/null || echo "No .next found"
-            echo "=== routes-manifest location ==="
-            find . -name "routes-manifest.json" 2>/dev/null || echo "routes-manifest.json not found"
-            echo "=== outputFileTracingRoot in next.config ==="
-            cat next.config.ts
+            echo "=== .vercel/output/functions ==="
+            find .vercel/output/functions -maxdepth 3 2>/dev/null || echo "NO FUNCTIONS DIR"
+            echo "=== required-server-files appDir ==="
+            python3 -c "import json; d=json.load(open('.next/required-server-files.json')); print('appDir:', d.get('appDir')); print('relativeAppDir:', d.get('relativeAppDir'))"
 
       - name: Deploy to Vercel
-        working-directory: apps/frontend
         run: vercel deploy --prebuilt ${{ steps.resolve.outputs.vercel_flags }} --token=${{ secrets.VERCEL_TOKEN }}
         env:
           VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
