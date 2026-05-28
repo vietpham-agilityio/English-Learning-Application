@@ -229,14 +229,6 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          sparse-checkout: |
-            apps/frontend
-            package.json
-            pnpm-lock.yaml
-            pnpm-workspace.yaml
-            .github/actions
-          sparse-checkout-cone-mode: false
 
       - name: Setup Node and pnpm workspace
         uses: ./.github/actions/setup-node-and-pnpm
