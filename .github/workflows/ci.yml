@@ -48,7 +48,6 @@ jobs:
             echo "::warning::Security vulnerabilities found in dependencies. Please review and update affected packages."
             exit 0
           fi
-
   test:
     name: Unit Tests
     runs-on: ubuntu-latest
@@ -102,7 +101,6 @@ jobs:
           tags: |
             type=ref,event=branch
             type=sha,prefix=sha-
-
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
@@ -139,7 +137,6 @@ jobs:
           echo "doppler_token=${{ secrets.DOPPLER_TOKEN_BE_DEV }}" >> $GITHUB_OUTPUT
           echo "railway_token=${{ secrets.RAILWAY_TOKEN_DEV }}" >> $GITHUB_OUTPUT
         fi
-
     - name: Setup Doppler CLI
       uses: ./.github/actions/setup-doppler
       with:
@@ -157,7 +154,6 @@ jobs:
         [[ -z "$RAILWAY_PROJECT_ID" ]] && MISSING+=("RAILWAY_PROJECT_ID (secret)")
         [[ -z "$RAILWAY_TOKEN" ]] && MISSING+=("RAILWAY_TOKEN (resolved)")
         [[ -z "$RAILWAY_SERVICE" ]] && MISSING+=("RAILWAY_SERVICE (variable)")
-
         if [[ ${#MISSING[@]} -gt 0 ]]; then
           echo "::error::Missing required environment variables:"
           for VAR in "${MISSING[@]}"; do
@@ -198,7 +194,6 @@ jobs:
             echo "vercel_env=preview" >> $GITHUB_OUTPUT
             echo "vercel_flags=" >> $GITHUB_OUTPUT
           fi
-
       - name: Setup Node and pnpm workspace
         uses: ./.github/actions/setup-node-and-pnpm
 
@@ -211,40 +206,40 @@ jobs:
         run: doppler me
 
       - name: Install Vercel CLI
-        run: npm install -g vercel
+        run: npm install -g vercel@latest
 
-      - name: Inject Doppler secrets into Vercel
-        working-directory: apps/frontend
-        run: |
-          doppler secrets download --no-file --format env | while IFS='=' read -r key value; do
-            [[ -z "$key" || "$key" == \#* ]] && continue
-            vercel env rm "$key" ${{ steps.resolve.outputs.vercel_env }} --yes --token=${{ secrets.VERCEL_TOKEN }} 2>/dev/null || true
-            echo "$value" | vercel env add "$key" ${{ steps.resolve.outputs.vercel_env }} --token=${{ secrets.VERCEL_TOKEN }}
-          done
-        env:
-          VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+      # - name: Inject Doppler secrets into Vercel
+      #   working-directory: apps/frontend
+      #   run: |
+      #     doppler secrets download --no-file --format env | while IFS='=' read -r key value; do
+      #       [[ -z "$key" || "$key" == \#* ]] && continue
+      #       vercel env rm "$key" ${{ steps.resolve.outputs.vercel_env }} --yes --token=${{ secrets.VERCEL_TOKEN }} 2>/dev/null || true
+      #       echo "$value" | vercel env add "$key" ${{ steps.resolve.outputs.vercel_env }} --token=${{ secrets.VERCEL_TOKEN }}
+      #     done
+      #   env:
+      #     VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+      #     VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
 
       - name: Pull Vercel project settings
         run: vercel pull --yes --environment=${{ steps.resolve.outputs.vercel_env }} --token=${{ secrets.VERCEL_TOKEN }}
-        working-directory: apps/frontend
-        env:
-          VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+        # working-directory: apps/frontend
+        # env:
+        #   VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+        #   VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
 
-      - name: Build Vercel project
-        shell: bash
-        run: vercel build ${{ steps.resolve.outputs.vercel_flags }} --token=${{ secrets.VERCEL_TOKEN }}
-        working-directory: apps/frontend
-        env:
-          VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
-          TURBOPACK: "0"
+      # - name: Build Vercel project
+      #   run: vercel build ${{ steps.resolve.outputs.vercel_flags }} --token=${{ secrets.VERCEL_TOKEN }}
+      #   working-directory: apps/frontend
+      #   env:
+      #     VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+      #     VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+      - name: Build Vercel output
+        run: |
+            doppler run --command="vercel build ${{ steps.resolve.outputs.vercel_flags }} --token=${{ secrets.VERCEL_TOKEN }}"
 
-      - name: Deploy to Vercel
-        shell: bash
-        run: vercel deploy --prebuilt ${{ steps.resolve.outputs.vercel_flags }} --token=${{ secrets.VERCEL_TOKEN }}
-        working-directory: apps/frontend
-        env:
-          VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+      # - name: Deploy to Vercel
+      #   run: vercel deploy --prebuilt ${{ steps.resolve.outputs.vercel_flags }} --token=${{ secrets.VERCEL_TOKEN }}
+      #   working-directory: apps/frontend
+      #   env:
+      #     VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+      #     VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
