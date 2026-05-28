@@ -158,8 +158,9 @@ jobs:
           RAILWAY_SERVICE: ${{ vars.RAILWAY_SERVICE }}
           RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
 
-      - name: Verify Railway authentication
-        run: railway whoami
+      - name: Debug token (safe)
+        run: |
+          echo "Token length: ${#RAILWAY_TOKEN}"
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
