@@ -170,6 +170,9 @@ jobs:
         RAILWAY_SERVICE: ${{ vars.RAILWAY_SERVICE }}
         RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
 
+    - name: Inject Doppler secrets
+      run: doppler secrets download --no-file --format env >> $GITHUB_ENV
+
     - name: Trigger Railway re-deploying
       run: doppler run -- railway redeploy --service ${{ vars.RAILWAY_SERVICE }} --environment ${{ steps.resolve.outputs.railway_environment }} --yes
       env:
