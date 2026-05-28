@@ -208,24 +208,27 @@ jobs:
       - name: Install Vercel CLI
         run: npm install -g vercel@latest
 
-      - name: Inject Doppler secrets into Vercel
-        run: |
-          doppler secrets download --no-file --format env | while IFS='=' read -r key value; do
-            [[ -z "$key" || "$key" == \#* ]] && continue
-            vercel env rm "$key" ${{ steps.resolve.outputs.vercel_env }} --yes --token=${{ secrets.VERCEL_TOKEN }} 2>/dev/null || true
-            echo "$value" | vercel env add "$key" ${{ steps.resolve.outputs.vercel_env }} --token=${{ secrets.VERCEL_TOKEN }}
-          done
-        env:
-          VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+      # - name: Inject Doppler secrets into Vercel
+      #   working-directory: apps/frontend
+      #   run: |
+      #     doppler secrets download --no-file --format env | while IFS='=' read -r key value; do
+      #       [[ -z "$key" || "$key" == \#* ]] && continue
+      #       vercel env rm "$key" ${{ steps.resolve.outputs.vercel_env }} --yes --token=${{ secrets.VERCEL_TOKEN }} 2>/dev/null || true
+      #       echo "$value" | vercel env add "$key" ${{ steps.resolve.outputs.vercel_env }} --token=${{ secrets.VERCEL_TOKEN }}
+      #     done
+      #   env:
+      #     VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+      #     VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
 
       - name: Pull Vercel project settings
+        working-directory: apps/frontend
         run: vercel pull --yes --environment=${{ steps.resolve.outputs.vercel_env }} --token=${{ secrets.VERCEL_TOKEN }}
         env:
           VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
 
       - name: Build Vercel project
+        working-directory: apps/frontend
         run: vercel build ${{ steps.resolve.outputs.vercel_flags }} --token=${{ secrets.VERCEL_TOKEN }}
         env:
           VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
@@ -233,6 +236,7 @@ jobs:
 
       - name: Debug — inspect build output paths
         if: always()
+        working-directory: apps/frontend
         run: |
             echo "=== .vercel/output/functions ==="
             find .vercel/output/functions -maxdepth 3 2>/dev/null || echo "NO FUNCTIONS DIR"
@@ -240,6 +244,7 @@ jobs:
             python3 -c "import json; d=json.load(open('.next/required-server-files.json')); print('appDir:', d.get('appDir')); print('relativeAppDir:', d.get('relativeAppDir'))"
 
       - name: Deploy to Vercel
+        working-directory: apps/frontend
         run: vercel deploy --prebuilt ${{ steps.resolve.outputs.vercel_flags }} --token=${{ secrets.VERCEL_TOKEN }}
         env:
           VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
