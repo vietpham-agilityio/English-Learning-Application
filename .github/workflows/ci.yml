@@ -217,27 +217,27 @@ jobs:
         run: |
           doppler secrets download --no-file --format env | while IFS='=' read -r key value; do
             [[ -z "$key" || "$key" == \#* ]] && continue
-            vercel env rm "$key" ${{ steps.resolve.outputs.vercel_env }} --yes --cwd apps/frontend --token=${{ secrets.VERCEL_TOKEN }} 2>/dev/null || true
-            echo "$value" | vercel env add "$key" ${{ steps.resolve.outputs.vercel_env }} --cwd apps/frontend --token=${{ secrets.VERCEL_TOKEN }}
+            vercel env rm "$key" ${{ steps.resolve.outputs.vercel_env }} --yes --token=${{ secrets.VERCEL_TOKEN }} 2>/dev/null || true
+            echo "$value" | vercel env add "$key" ${{ steps.resolve.outputs.vercel_env }} --token=${{ secrets.VERCEL_TOKEN }}
           done
         env:
           VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
 
       - name: Pull Vercel project settings
-        run: vercel pull --yes --cwd apps/frontend --environment=${{ steps.resolve.outputs.vercel_env }} --token=${{ secrets.VERCEL_TOKEN }}
+        run: vercel pull --yes --environment=${{ steps.resolve.outputs.vercel_env }} --token=${{ secrets.VERCEL_TOKEN }}
         env:
           VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
 
       - name: Build Vercel project
-        run: vercel build --cwd apps/frontend ${{ steps.resolve.outputs.vercel_flags }} --token=${{ secrets.VERCEL_TOKEN }}
+        run: vercel build ${{ steps.resolve.outputs.vercel_flags }} --token=${{ secrets.VERCEL_TOKEN }}
         env:
           VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
 
       - name: Deploy to Vercel
-        run: vercel deploy --prebuilt --cwd apps/frontend ${{ steps.resolve.outputs.vercel_flags }} --token=${{ secrets.VERCEL_TOKEN }}
+        run: vercel deploy --prebuilt ${{ steps.resolve.outputs.vercel_flags }} --token=${{ secrets.VERCEL_TOKEN }}
         env:
           VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
