@@ -230,8 +230,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          sparse-checkout: apps/frontend
+          sparse-checkout: |
+            apps/frontend
+            package.json
+            pnpm-lock.yaml
+            pnpm-workspace.yaml
           sparse-checkout-cone-mode: false
+
+      - name: Setup Node and pnpm workspace
+        uses: ./.github/actions/setup-node-and-pnpm
 
       - name: Resolve environment
         id: resolve
@@ -267,4 +274,3 @@ jobs:
         env:
           VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
-          
