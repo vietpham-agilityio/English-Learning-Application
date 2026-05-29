@@ -214,16 +214,16 @@ jobs:
         env:
           VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+      - name: Promote Vercel config to repo root
+        run: cp -r apps/frontend/.vercel .vercel
 
       - name: Build Vercel project
-        working-directory: apps/frontend
         run: doppler run --command="vercel build ${{ steps.resolve.outputs.vercel_flags }} --token=${{ secrets.VERCEL_TOKEN }}"
         env:
           VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
 
       - name: Deploy to Vercel
-        working-directory: apps/frontend
         run: |
           if [[ "${{ steps.resolve.outputs.vercel_flags }}" == "--prod" ]]; then
             vercel deploy --prebuilt --archive=tgz --prod --token=${{ secrets.VERCEL_TOKEN }}
