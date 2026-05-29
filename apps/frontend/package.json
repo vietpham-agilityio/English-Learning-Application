@@ -5,7 +5,6 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "postbuild": "node -e \"const fs=require('fs'); const f='.next/required-server-files.json'; const d=JSON.parse(fs.readFileSync(f)); d.relativeAppDir='.'; fs.writeFileSync(f, JSON.stringify(d));\"",
     "start": "next start",
     "lint": "eslint"
   },
